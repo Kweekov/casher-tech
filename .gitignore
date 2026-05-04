@@ -1,0 +1,48 @@
+# Monorepo: ignore build artifacts and deps under frontend/ and backend/.
+# Root Markdown (e.g. deepseek.md, LIVECODING_TASKS.md) is tracked — no *.md rules here.
+
+# --- frontend (Next.js) ---
+frontend/node_modules/
+frontend/.pnp
+frontend/.pnp.*
+frontend/.yarn/*
+!frontend/.yarn/patches
+!frontend/.yarn/plugins
+!frontend/.yarn/releases
+!frontend/.yarn/versions
+frontend/coverage/
+frontend/.next/
+frontend/out/
+frontend/build/
+frontend/.DS_Store
+frontend/*.pem
+frontend/npm-debug.log*
+frontend/yarn-debug.log*
+frontend/yarn-error.log*
+frontend/.pnpm-debug.log*
+frontend/.env*
+frontend/.vercel
+frontend/*.tsbuildinfo
+frontend/next-env.d.ts
+
+# --- backend (Node / Express) ---
+backend/node_modules/
+backend/coverage/
+backend/.DS_Store
+backend/*.pem
+backend/npm-debug.log*
+backend/yarn-debug.log*
+backend/yarn-error.log*
+backend/.pnpm-debug.log*
+backend/.env*
+backend/*.tsbuildinfo
+
+# --- repo root ---
+.DS_Store
+*.pem
+.env
+.env.local
+.env.*.local
+
+deepseek.md
+LIVECODING_TASKS.md
