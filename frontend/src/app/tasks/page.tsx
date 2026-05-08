@@ -1,4 +1,7 @@
+'use client';
+
 import Link from "next/link";
+import { useEffect, useMemo, useState } from "react";
 
 const sections = [
   {
@@ -91,11 +94,53 @@ const sections = [
 ];
 
 export default function TasksPage() {
+  const taskIds = useMemo(
+    () =>
+      sections.flatMap((section, sectionIdx) =>
+        section.levels.flatMap((level, levelIdx) =>
+          level.tasks.map((_, taskIdx) => `${section.role}-${sectionIdx}-${levelIdx}-${taskIdx}`)
+        )
+      ),
+    []
+  );
+  const [completedTasks, setCompletedTasks] = useState<Record<string, boolean>>(() => {
+    if (typeof window === "undefined") {
+      return {};
+    }
+
+    const raw = window.localStorage.getItem("completedTasks");
+    if (!raw) {
+      return {};
+    }
+
+    try {
+      return JSON.parse(raw) as Record<string, boolean>;
+    } catch {
+      return {};
+    }
+  });
+
+  useEffect(() => {
+    window.localStorage.setItem("completedTasks", JSON.stringify(completedTasks));
+  }, [completedTasks]);
+
+  const completedCount = taskIds.filter((id) => completedTasks[id]).length;
+
+  const toggleTask = (taskId: string) => {
+    setCompletedTasks((prev) => ({
+      ...prev,
+      [taskId]: !prev[taskId],
+    }));
+  };
+
   return (
     <main className="mx-auto w-full max-w-6xl p-6 md:p-10">
       <div className="mb-8 flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold">Задания</h1>
+          <p className="mt-1 text-sm text-gray-600">
+            Выполнено: {completedCount} из {taskIds.length}
+          </p>
         </div>
         <Link href="/" className="rounded bg-black px-4 py-2 text-sm text-white hover:bg-gray-800">
           К заказам
@@ -103,16 +148,36 @@ export default function TasksPage() {
       </div>
 
       <div className="space-y-8">
-        {sections.map((section) => (
+        {sections.map((section, sectionIdx) => (
           <section key={section.role} className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
             <h2 className="mb-4 text-2xl font-semibold">{section.role}</h2>
             <div className="grid gap-4 md:grid-cols-3">
-              {section.levels.map((level) => (
+              {section.levels.map((level, levelIdx) => (
                 <article key={level.tasks.join(",")} className="rounded-lg border border-gray-200 p-4">
-                  <ul className="mt-3 list-disc space-y-1 pl-5 text-sm text-gray-700">
-                    {level.tasks.map((task) => (
-                      <li key={task}>{task}</li>
-                    ))}
+                  <ul className="mt-3 space-y-2 text-sm text-gray-700">
+                    {level.tasks.map((task, taskIdx) => {
+                      const taskId = `${section.role}-${sectionIdx}-${levelIdx}-${taskIdx}`;
+                      const isCompleted = Boolean(completedTasks[taskId]);
+
+                      return (
+                        <li
+                          key={task}
+                          className="flex items-start gap-2 rounded px-1 py-0.5 transition hover:bg-gray-50"
+                          onClick={() => toggleTask(taskId)}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={isCompleted}
+                            onChange={() => toggleTask(taskId)}
+                            onClick={(event) => event.stopPropagation()}
+                            className="mt-0.5 h-4 w-4 rounded border-gray-300"
+                          />
+                          <span className={`cursor-pointer ${isCompleted ? "text-gray-400 line-through" : ""}`}>
+                            {task}
+                          </span>
+                        </li>
+                      );
+                    })}
                   </ul>
                   <p className="mt-3 text-xs font-medium text-gray-500">Файлы:</p>
                   <ul className="mt-1 space-y-1 text-xs text-gray-600">
